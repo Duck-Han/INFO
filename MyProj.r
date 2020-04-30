@@ -12,7 +12,7 @@ library(magick)
 d <- c(paste0("2020-02-", 12:29), paste0("2020-03-0", 1:9), paste0("2020-03-", 10:31), 
        paste0("2020-04-0", 1:9), paste0("2020-04-", 10:29))
 
-
+#plot antimated photo
 img <- image_graph(1200, 700, res = 96)
 
 out <- lapply(d, function(date){
@@ -149,7 +149,7 @@ all <- covid_tweets %>%
          covid_gram = 'total') %>%
   select(date, covid_gram, n:per)
 
-
+#data clean 
 covid_tweets %>%
   group_by(date, covid_gram) %>% #,party,   
   summarize(n = n()) %>%
@@ -443,7 +443,7 @@ df$year <- substring(df$Date,1,4)
 df$value <- gsub(",","",df$value)
 df$value <- as.numeric(as.character(df$value))
 barplot(df$value, col = df$colors,arg=df$year,names.arg=df$year,
-        main="",xlab="Year",
+        main="",xlab="Date",
         ylab="US UI Claims per week (in thousands)",
         border = NA)
 grid()
@@ -456,10 +456,14 @@ mtext("Weekly change, seasonally adjusted", side = 3, line = 0, font = 1, cex = 
 mtext("April 2019 - April 2020", side = 3, line = 1, font = 1, cex = 1.2, col = "black")
 mtext("United States Employment Statistics", side = 3, line = 2, font = 2, cex = 1.2, col = "black")
 
+# add a legend 
+legend("topleft", c("Critical","Good"), col = c("red","orange"), pch = 16, bty = "n")
 
 #5. Trend Analysis
 library(gtrendsR)
 library(tidyquant)
+
+#Search for trend
 grad_list <- gtrends(c("coronavirus",
                        "coronavirus pandemic",
                        "covid19",
@@ -467,7 +471,7 @@ grad_list <- gtrends(c("coronavirus",
                      gprop = "web",
                      geo = "US",
                      time = "today 3-m")
-
+#Plot keyword trends
 grad_list %>%
   pluck("interest_over_time") %>% 
   as_tibble() %>% drop_na() %>%
@@ -482,12 +486,12 @@ grad_list %>%
   xlab("Date") + ylab("Normalized Hits") +
   guides(colour = guide_legend(override.aes = list(size=3)))
 
+#Add state info
 states_tbl <- map_data("state") %>%
   mutate(region = str_to_title(region))
 
 state_trends_tbl <- grad_list %>% 
   pluck("interest_by_region") %>% 
-  # filter(keyword %in% c("nursing programs","nursing schools")) %>%
   left_join(states_tbl, by = c("location" = "region")) %>%
   as_tibble
 
@@ -501,6 +505,7 @@ state_trends_tbl %>%
   facet_wrap(~keyword, ncol=2) +
   labs(title = "Keyword Trends US")
 
+#Look for related topics
 top_n_related_searches <- grad_list %>% 
   pluck('related_queries') %>% as_tibble() %>%
   filter(related_queries=="top") %>%
